@@ -1,5 +1,5 @@
 project(IteratorDemos)
-
+include_directories(${CMAKE_SOURCE_DIR}/includes)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/util/iterator)
 
 add_executable(filter_integer_iterator demo/iterator/filter_integer_iterator.cpp)
