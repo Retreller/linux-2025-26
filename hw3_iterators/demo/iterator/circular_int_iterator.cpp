@@ -7,7 +7,7 @@ int main() {
     CircularIteratorBuilder circular(numbers.data(), numbers.size());
 
     for (int i = 0; i < 7; ++i) {
-        std::cout << circular.get() << " ";
+        std::cout << *circular << " ";
         ++circular;
     }
 

@@ -22,7 +22,7 @@ class CircularIteratorBuilder {
 public:
     CircularIteratorBuilder(int* arr, std::size_t n) : arr(arr), n(n), it(arr, n) {}
 
-    int& get() { return it.current(); }
+    int& operator*() {return it.current();};
     CircularIteratorBuilder& operator++() { it.advance(); return *this; }
 
 private:
