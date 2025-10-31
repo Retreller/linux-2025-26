@@ -1,0 +1,3 @@
+project(dup_spell_separate_lines)
+
+add_executable(dup_spell_separate_lines main.cpp)
