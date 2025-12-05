@@ -1,7 +1,3 @@
-//
-// Created by valeri on 11/1/25.
-//
-
 #include <iostream>
 #include <unistd.h>
 #include <sys/inotify.h>
