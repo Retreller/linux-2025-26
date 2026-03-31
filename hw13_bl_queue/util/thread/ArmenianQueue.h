@@ -3,68 +3,75 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include <optional>
 
-template <typename T>
-class blocking_queue {
-private:
-    std::queue<T> q;
-    const size_t max_size;
-    mutable std::mutex m;
-    std::condition_variable not_empty;
-    std::condition_variable not_full;
+namespace rau {
 
-public:
-    explicit blocking_queue(size_t limit) : max_size(limit) {}
+    template <typename T>
+    class blocking_queue {
+    public:
+        using size_type = std::size_t;
 
-    void push(T value) {
-        std::unique_lock<std::mutex> lock(m);
+        explicit blocking_queue(const size_type capacity) : max_size_{capacity} { }
 
-        not_full.wait(lock, [this]() {
-            return q.size() < max_size;
-        });
+        blocking_queue(const blocking_queue&) = delete;
+        blocking_queue& operator=(const blocking_queue&) = delete;
 
-        q.push(std::move(value));
-        not_empty.notify_one();
-    }
+        template <typename... Args>
+        void push(Args&&... args) {
+            std::unique_lock lock(mtx_);
 
-    T pop() {
-        std::unique_lock<std::mutex> lock(m);
+            cv_not_full_.wait(lock, [this] {
+                return data_.size() < max_size_;
+            });
 
-        not_empty.wait(lock, [this]() {
-            return !q.empty();
-        });
-
-        T value = std::move(q.front());
-        q.pop();
-        not_full.notify_one();
-        return value;
-    }
-
-    bool try_pop(T& value) {
-        std::lock_guard<std::mutex> lock(m);
-
-        if (q.empty()) {
-            return false;
+            data_.emplace(std::forward<Args>(args)...);
+            cv_not_empty_.notify_one();
         }
 
-        value = std::move(q.front());
-        q.pop();
-        not_full.notify_one();
-        return true;
-    }
+        T pop() {
+            std::unique_lock lock(mtx_);
+            cv_not_empty_.wait(lock, [this] {
+                return !data_.empty();
+            });
 
-    size_t size() const {
-        std::lock_guard<std::mutex> lock(m);
-        return q.size();
-    }
+            T res = std::move(data_.front());
+            data_.pop();
 
-    bool empty() const {
-        std::lock_guard<std::mutex> lock(m);
-        return q.empty();
-    }
+            cv_not_full_.notify_one();
+            return res;
+        }
 
-    bool full() const {
-        std::lock_guard<std::mutex> lock(m);
-        return q.size() >= max_size;
-    }
-};
+        std::optional<T> try_pop() {
+            std::lock_guard lock(mtx_);
+            if (data_.empty()) {
+                return std::nullopt;
+            }
+
+            T res = std::move(data_.front());
+            data_.pop();
+
+            cv_not_full_.notify_one();
+            return res;
+        }
+
+        size_type size() const {
+            std::lock_guard lock(mtx_);
+            return data_.size();
+        }
+
+        bool empty() const {
+            std::lock_guard lock(mtx_);
+            return data_.empty();
+        }
+
+    private:
+        const size_type max_size_;
+        std::queue<T> data_;
+
+        mutable std::mutex mtx_;
+        std::condition_variable cv_not_empty_;
+        std::condition_variable cv_not_full_;
+    };
+
+}
