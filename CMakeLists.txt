@@ -3,3 +3,4 @@ project(linux_homeworks)
 
 add_subdirectory(hello_world)
 add_subdirectory(hw3_iterators)
+add_subdirectory(hw13_bl_queue)
