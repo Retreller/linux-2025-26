@@ -16,7 +16,7 @@ public:
         : is_running(true) 
     {
         for (size_t i = 0; i < thread_count; ++i) {
-            workers.emplace_back([this] {
+            threads.emplace_back([this] {
                 while (true) {
                     std::function<void()> task;
                     {
@@ -44,10 +44,8 @@ public:
             is_running = false;
         }
         pool_condition.notify_all();
-        for (std::thread& worker : workers) {
-            if (worker.joinable()) {
-                worker.join();
-            }
+        for (std::thread& t : threads) {
+            t.join();
         }
     }
 
@@ -72,11 +70,8 @@ public:
         return result;
     }
 
-    thread_pool(const thread_pool&) = delete;
-    thread_pool& operator=(const thread_pool&) = delete;
-
 private:
-    std::vector<std::thread> workers;
+    std::vector<std::thread> threads;
     std::queue<std::function<void()>> tasks;
     std::mutex queue_lock;
     std::condition_variable pool_condition;
