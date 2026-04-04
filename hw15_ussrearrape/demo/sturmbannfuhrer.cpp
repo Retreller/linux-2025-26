@@ -29,8 +29,6 @@ int main() {
         
         if (kill(target, SIGUSR1) == -1) continue;
 
-        usleep(100000); 
-
         if (protocol_confirmed) {
             kill(target, SIGILL);
             return 0;
