@@ -14,9 +14,6 @@ namespace rau {
 
         explicit blocking_queue(const size_type capacity) : max_size_{capacity} { }
 
-        blocking_queue(const blocking_queue&) = delete;
-        blocking_queue& operator=(const blocking_queue&) = delete;
-
         template <typename... Args>
         void push(Args&&... args) {
             std::unique_lock lock(mtx_);
