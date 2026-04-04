@@ -10,9 +10,7 @@ namespace rau {
     template <typename T>
     class blocking_queue {
     public:
-        using size_type = std::size_t;
-
-        explicit blocking_queue(const size_type capacity) : max_size_{capacity} { }
+        explicit blocking_queue(const std::size_t capacity) : max_size_{capacity} { }
 
         template <typename... Args>
         void push(Args&&... args) {
@@ -52,7 +50,7 @@ namespace rau {
             return res;
         }
 
-        size_type size() const {
+        std::size_t size() const {
             std::lock_guard lock(mtx_);
             return data_.size();
         }
@@ -63,7 +61,7 @@ namespace rau {
         }
 
     private:
-        const size_type max_size_;
+        const std::size_t max_size_;
         std::queue<T> data_;
 
         mutable std::mutex mtx_;
